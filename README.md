@@ -10,6 +10,8 @@
 
 <br>
 
+Fork of dr4ft (https://github.com/dr4fters/dr4ft) for drafting pokemon teams.
+
 # dr4ft [![Discord](https://img.shields.io/discord/224178957103136779?label=Discord&logo=discord&logoColor=white&color=7289da)](https://mtgjson.com/discord)
 
 *dr4ft* is a <kbd>NodeJS</kbd> based web-application that simulates draft and sealed format between players and/or bots.
