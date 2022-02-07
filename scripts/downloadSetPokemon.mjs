@@ -1,14 +1,18 @@
 import fs from "fs";
 import { parse } from "csv-parse";
 import fetch from "node-fetch";
+import path from "path";
+import { getDataDir } from "../backend/data.js";
 
 const parser = parse({
   delimiter: ",",
 });
 
+const pokemonDataDir = path.join(getDataDir(), "pokemon");
+
 const getPokemon = async () => {
   let pokemonList = []; // get list of pokemon in draft from file
-  fs.createReadStream("./pokemonList.txt")
+  fs.createReadStream(path.join(pokemonDataDir, "pokemonList.txt"))
     .pipe(parser)
     .on("data", function (csvrow) {
       console.log(csvrow);
@@ -22,25 +26,34 @@ const getPokemon = async () => {
 const sendPokemonRequests = async (list) => {
   const pokeApi = "https://pokeapi.co/api/v2/";
 
-  // make a request for each pokemon and get species data
   list = list.map((pokemonName) => {
     return fetch(`${pokeApi}pokemon/${pokemonName}`);
   });
 
   const resultArray = await Promise.allSettled(list);
-  console.log(await resultArray[0].value.json());
 
-  // for (let result of resultArray) {
-  //   console.log(await result.value.json());
-  // }
+  const pokemonObject = {};
+  for (let result of resultArray.slice(0, 1)) {
+    let data = await result.value.json();
+    delete data.forms;
+    delete data.game_indices;
+    delete data.held_items;
+    delete data.base_experience;
+    delete data.height;
+    delete data.location_area_encounters;
+    delete data.order;
+    delete data.past_types;
+    delete data.weight;
+    pokemonObject[data.name] = data;
+  }
+  fs.writeFile(
+    path.join(pokemonDataDir, "pokemon.json"),
+    JSON.stringify(pokemonObject),
+    "utf8",
+    (err) => {
+      if (err) throw err;
+    }
+  );
 };
-//   Promise.allSettled(list)
-//     .then((responses) => Promise.allSettled(responses.map((res) => res.value)))
-//     .then((values) => Promise.allSettled(values.map((val) => val.value)))
-//     .then((data) =>
-//       Promise.allSettled(data.map((pokemon) => console.log(pokemon)))
-//     )
-//     .catch((error) => console.error(error.message));
-// };
 
 getPokemon();
